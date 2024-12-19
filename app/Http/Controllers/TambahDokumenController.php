@@ -306,8 +306,8 @@ class TambahDokumenController extends Controller {
         // cek jika ada konten yang dikirimkan
         if ($request->var_KONTEN !== null || $request->var_ISISURAT !== null) {
             // tambahkan konten ke section
-            // dd(TagPrefixFixer::cleanHTML($request->var_KONTEN));
-            Html::addHtml($htmlSection, TagPrefixFixer::addNamespaces(TagPrefixFixer::cleanHTML($request->var_KONTEN)));
+            // Html::addHtml($htmlSection, TagPrefixFixer::addNamespaces(TagPrefixFixer::cleanHTML($request->var_KONTEN)));
+            Html::addHtml($htmlSection, TagPrefixFixer::addNamespaces($request->var_KONTEN));
         }
 
         // lakukan perulangan dengan form yang dikirimkan

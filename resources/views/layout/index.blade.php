@@ -13,14 +13,14 @@
         <!-- Favicon -->
         <link rel="icon" href="{{ asset('assets') }}/img/brand/favicon.ico" type="image/x-icon" />
 
-    <!-- SweetAlert CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+        <!-- SweetAlert CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-    <!-- SweetAlert JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+        <!-- SweetAlert JS -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
-    <!-- Title -->
-    <title>User | @yield('title')</title>
+        <!-- Title -->
+        <title>User | @yield('title')</title>
         <!-- Title -->
         <title>User | @yield('title')</title>
 
@@ -55,6 +55,9 @@
 
         <!-- Summernote -->
         <link rel="stylesheet" href="{{asset('assets/plugins/summernote/summernote-bs5.min.css')}}">
+
+        <!-- quill -->
+        <link href="{{ asset('assets/plugins/quill/quill.snow.css') }}" rel="stylesheet">
 
         <style>
         body.dt-print-view h1 {
@@ -240,6 +243,9 @@
         <!-- summernote -->
         <script src="{{asset('assets/plugins/summernote/summernote-bs5.min.js')}}"></script>
 
+        <!-- quill -->
+        <script src="{{ asset('assets/plugins/quill/quill.js') }}"></script>
+
         <!-- Color Theme js -->
         <script src="{{ asset('assets/js/themeColors.js') }}"></script>
 
@@ -263,6 +269,11 @@
                 tabsize: 2,
                 height: 100
             })
+
+            //quill
+            var quill = new Quill('#quill', {
+                theme: 'snow'
+            });
 
             //daterangepicker
             $('.daterange').daterangepicker({

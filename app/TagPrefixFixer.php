@@ -2,26 +2,32 @@
 
 namespace App;
 
-use DOMDocument;
 use DOMNode;
+use DOMElement;
+use DOMDocument;
 
 class TagPrefixFixer
 {
     //
+
+    protected static $notClosedTags = [
+        'br', 'hr', 'img', 'input', 'meta', 'link', 'base', 'col', 'frame', 'area', 'param', 'command', 'keygen', 'source', 'track', 'wbr'
+    ];
+
     /**
       * @desc Removes all prefixes from tags
       * @param string $xml The XML code to replace against.
       * @return string The XML code with no prefixes in the tags.
     */
     public static function Clean(string $xml) {
+
         $doc = new DOMDocument();
         /* Load the XML */
         $doc->loadXML($xml,
-        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING
-            // LIBXML_HTML_NOIMPLIED | # Make sure no extra BODY
-            // LIBXML_HTML_NODEFDTD |  # or DOCTYPE is created
-            // LIBXML_NOERROR |        # Suppress any errors
-            // LIBXML_NOWARNING        # or warnings about prefixes.
+            LIBXML_HTML_NOIMPLIED | # Make sure no extra BODY
+            LIBXML_HTML_NODEFDTD |  # or DOCTYPE is created
+            LIBXML_NOERROR |        # Suppress any errors
+            LIBXML_NOWARNING        # or warnings about prefixes.
         );
         /* Run the code */
         self::removeTagPrefixes($doc);
@@ -51,6 +57,8 @@ class TagPrefixFixer
                     /* Change the name of the tag */
                     self::renameNode($node, $newTagName);
                 }
+                /* Ensure the tag is properly closed */
+                self::giveCloseTag($node);
             }
         }
     }
@@ -70,6 +78,47 @@ class TagPrefixFixer
         $node->parentNode->replaceChild($newNode, $node);
     }
 
+    private static function giveCloseTag(DOMElement $node) {
+        /* Check if the tag is not self-closing */
+        if (in_array($node->tagName, self::$notClosedTags)) {
+            /* If the tag is self-closing, add a slash to close it properly */
+            $node->parentNode->replaceChild($node->ownerDocument->createTextNode('<' . $node->tagName . '/>'), $node);
+        } else {
+            /* Create a new node with the same name */
+            $newNode = $node->ownerDocument->createElement($node->tagName);
+            /* Copy over every attribute from the old node to the new one */
+            foreach ($node->attributes as $attribute) {
+                $newNode->setAttribute($attribute->nodeName, $attribute->nodeValue);
+            }
+            /* Copy over every child node to the new node */
+            while ($node->firstChild) {
+                $newNode->appendChild($node->firstChild);
+            }
+            /* Replace the old node with the new one */
+            $node->parentNode->replaceChild($newNode, $node);
+        }
+    }
+
+    private static function moveNestedParagraphs(DOMNode $domNode) {
+        foreach ($domNode->childNodes as $node) {
+            if ($node->nodeType === XML_ELEMENT_NODE && $node->nodeName === 'p') {
+                self::moveParagraphContent($node);
+            }
+            if ($node->hasChildNodes()) {
+                self::moveNestedParagraphs($node);
+            }
+        }
+    }
+
+    private static function moveParagraphContent(DOMNode $paragraph) {
+        $parent = $paragraph->parentNode;
+        $nextSibling = $paragraph->nextSibling;
+        while ($paragraph->firstChild) {
+            $parent->insertBefore($paragraph->firstChild, $nextSibling);
+        }
+        $parent->removeChild($paragraph);
+    }
+
     public static function cleanHTML($html) {
         $doc = new DOMDocument();
         /* Load the HTML */
@@ -79,6 +128,12 @@ class TagPrefixFixer
                 LIBXML_NOERROR |        # Suppress any errors
                 LIBXML_NOWARNING        # or warnings about prefixes.
         );
+        /* Run the code */
+        foreach ($doc->getElementsByTagName('*') as $element) {
+            self::giveCloseTag($element);
+        }
+        self::moveNestedParagraphs($doc);
+
         /* Immediately save the HTML and return it. */
         return $doc->saveHTML();
     }
